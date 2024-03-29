@@ -33,6 +33,17 @@ void* mymalloc(size_t size) {
         if (block->free && block->size >= size) {
             // Found a free block that can fit the requested size
             block->free = 0;
+
+            // If the block is larger than the requested size, split it into two blocks
+            if (block->size > size + sizeof(Block)) {
+                Block *newBlock = (Block *)((char *)(block + 1) + size);
+                newBlock->size = block->size - size - sizeof(Block);
+                newBlock->free = 1;
+
+                block->size = size;
+                allocated += sizeof(Block);
+            }
+
             return (void *)(block + 1);
         }
 
@@ -49,7 +60,7 @@ void* mymalloc(size_t size) {
     block->size = size;
     block->free = 0;
 
-    allocated = (char *)(block + 1) + size - memory;
+    allocated += size + sizeof(Block);
 
     return (void *)(block + 1);
 }
