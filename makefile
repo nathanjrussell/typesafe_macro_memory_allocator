@@ -1,15 +1,20 @@
-CC=gcc
-CFLAGS=-I.
-DEPS = memory_allocator.h
-OBJ = main.o memory_allocator.o 
+CC = gcc
+CFLAGS = -Wall -g
+LDFLAGS = -lm
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+OBJS = main.o matrix_operations.o memory_allocator.o
 
-main: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
+my_program: $(OBJS)
+	$(CC) $(CFLAGS) -o my_program $(OBJS) $(LDFLAGS)
 
-.PHONY: clean
+main.o: main.c matrix_operations.h memory_allocator.h
+	$(CC) $(CFLAGS) -c main.c
+
+matrix_operations.o: matrix_operations.c matrix_operations.h
+	$(CC) $(CFLAGS) -c matrix_operations.c
+
+memory_allocator.o: memory_allocator.c memory_allocator.h
+	$(CC) $(CFLAGS) -c memory_allocator.c
 
 clean:
-	rm -f *.o main
+	rm -f *.o my_program
