@@ -3,7 +3,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#define MEMORY_SIZE 1024 * 1024 // 1 MB
+#define MEMORY_SIZE 200000000 // 1 MB
 
 typedef struct {
     size_t size;
@@ -27,17 +27,29 @@ void init_memory() {
 void* mymalloc(size_t size) {
     init_memory();
 
-    if (allocated + size + sizeof(Block) > MEMORY_SIZE) {
+    // Search for a free block that can fit the requested size
+    Block *block = (Block *)memory;
+    while ((char *)block < memory + allocated) {
+        if (block->free && block->size >= size) {
+            // Found a free block that can fit the requested size
+            block->free = 0;
+            return (void *)(block + 1);
+        }
+
+        // Move to the next block
+        block = (Block *)((char *)(block + 1) + block->size);
+    }
+
+    // No free block found, allocate a new block
+    if ((char *)block + sizeof(Block) + size > memory + MEMORY_SIZE) {
         // Not enough memory left
         return NULL;
     }
 
-    // Allocate a chunk from the reserved block
-    Block *block = (Block *)(memory + allocated);
     block->size = size;
     block->free = 0;
 
-    allocated += size + sizeof(Block);
+    allocated = (char *)(block + 1) + size - memory;
 
     return (void *)(block + 1);
 }
