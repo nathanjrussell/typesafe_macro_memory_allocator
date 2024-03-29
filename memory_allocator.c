@@ -3,33 +3,52 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#define MEMORY_SIZE 1024 * 1024 // 1 MB
+
+static char *memory = NULL;
+static size_t allocated = 0;
+
 void* mymalloc(size_t size) {
-    void *ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (ptr == MAP_FAILED) {
-        perror("Memory allocation failed");
+    if (memory == NULL) {
+        // Reserve a large block of memory
+        memory = mmap(NULL, MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        if (memory == MAP_FAILED) {
+            perror("Memory reservation failed");
+            return NULL;
+        }
+    }
+
+    if (allocated + size > MEMORY_SIZE) {
+        // Not enough memory left
         return NULL;
     }
+
+    // Allocate a chunk from the reserved block
+    void *ptr = memory + allocated;
+    allocated += size;
+
     return ptr;
 }
 
 void myfree(void* ptr, size_t size) {
-    if (munmap(ptr, size) == -1) {
-        perror("Memory deallocation failed");
+    // This function doesn't actually free the memory, it just moves the allocation pointer back
+    if (ptr >= memory && ptr < memory + allocated) {
+        allocated -= size;
     }
 }
 
 int main() {
     // Allocate memory for an integer
-    int *ptr = (int*) mymalloc(sizeof(int));
+    void *ptr = mymalloc(sizeof(int));
     if (ptr == NULL) {
         return 1;
     }
 
     // Use the allocated memory
-    *ptr = 10;
-    printf("Value of *ptr: %d\n", *ptr);
+    *(int*)ptr = 10;
+    printf("Value of *ptr: %d\n", *(int*)ptr);
 
-    // Deallocate the memory
+    // "Free" the memory
     myfree(ptr, sizeof(int));
 
     return 0;
