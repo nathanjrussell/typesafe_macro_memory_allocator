@@ -24,6 +24,17 @@ void init_memory() {
     }
 }
 
+void free_memory() {
+    if (memory != NULL) {
+        if (munmap(memory, MEMORY_SIZE) == -1) {
+            perror("Memory deallocation failed");
+            exit(EXIT_FAILURE);
+        }
+        memory = NULL;
+        allocated = 0;
+    }
+}
+
 void* mymalloc(size_t size) {
     init_memory();
 
@@ -84,6 +95,8 @@ int main() {
 
     // Free the memory
     myfree(ptr);
+
+    free_memory();
 
     return 0;
 }
