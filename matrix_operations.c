@@ -6,111 +6,108 @@ static int** create_identity_matrix(int size);
 static int** multiply_matrices(int** matrix1, int** matrix2, int size);
 static int isIdentityMatrix(int** matrix, int size);
 
+// Build a test case for profiling and testing using matrix multiplication
 MatrixProduct* buildMatrixTest(int matrixSize) {
-    MatrixProduct* matrixProduct = (MatrixProduct*)mymalloc(sizeof(MatrixProduct));
-    if (matrixProduct == NULL) {
+    MatrixProduct* matrixProduct = (MatrixProduct*)mymalloc(sizeof(MatrixProduct)); //allocate memory for the test structure
+    if (matrixProduct == NULL) { //check if memory allocation was successful
         return NULL;
     }
-    matrixProduct->matrixSize = matrixSize;
-    matrixProduct->matrixA = create_identity_matrix(matrixSize);
-    if (matrixProduct->matrixA == NULL) {
-        myfree(matrixProduct);
-        return NULL;
-    }
-    matrixProduct->matrixB = create_identity_matrix(matrixSize);
-    if (matrixProduct->matrixB == NULL) {
-        for (int i = 0; i < matrixSize; i++) {
-            myfree(matrixProduct->matrixA[i]);
-        }
-        myfree(matrixProduct);
-        return NULL;
-    }
-    matrixProduct->matrixProductAB = multiply_matrices(matrixProduct->matrixA, matrixProduct->matrixB, matrixSize);
-    if (matrixProduct->matrixProductAB == NULL) {
-        for (int i = 0; i < matrixSize; i++) {
-            myfree(matrixProduct->matrixA[i]);
-            myfree(matrixProduct->matrixB[i]);
-        }
-        myfree(matrixProduct->matrixA);
-        myfree(matrixProduct->matrixB);
-        myfree(matrixProduct);
-        return NULL;
+    matrixProduct->matrixSize = matrixSize; //set the size of the matrices
+    matrixProduct->matrixA = create_identity_matrix(matrixSize); //create an identity matrix for matrix A
+    if (matrixProduct->matrixA == NULL) { //check if memory allocation was successful
+        myfree(matrixProduct); //free the allocated memory if problem
+        return NULL; //return NULL if problem
     }
 
-    return matrixProduct;
-}
+    matrixProduct->matrixB = create_identity_matrix(matrixSize);    
+    if (matrixProduct->matrixB == NULL) { //check if memory allocation was successful
+        // If allocation fails, free previously allocated memory for matrix A
+        for (int i = 0; i < matrixSize; i++) {
+            myfree(matrixProduct->matrixA[i]); //free the memory for each row
+        }
+        myfree(matrixProduct); //free the memory for the structure
+        return NULL; //return NULL if problem
+    } 
 
+    matrixProduct->matrixProductAB = multiply_matrices(matrixProduct->matrixA, matrixProduct->matrixB, matrixSize); //multiply the two matrices
+    if (matrixProduct->matrixProductAB == NULL) { //check if memory allocation was successful
+        // If allocation fails, free previously allocated memory for matrix A and B
+        for (int i = 0; i < matrixSize; i++) {
+            myfree(matrixProduct->matrixA[i]); //free the memory for each row of matrix A
+            myfree(matrixProduct->matrixB[i]); //free the memory for each row of matrix B
+        }
+        myfree(matrixProduct->matrixA); //free the memory for matrix A
+        myfree(matrixProduct->matrixB); //free the memory for matrix B
+        myfree(matrixProduct); //free the memory for the structure
+        return NULL; //return NULL if problem
+    }
+    return matrixProduct; //return the test structure
+} //close buildMatrixTest function
+
+// Check if a matrix is an identity matrix (diagonal elements are 1, all other elements are 0)
 static int isIdentityMatrix(int** matrix, int size) {
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             if (i == j && matrix[i][j] != 1) {
-                return 0;
+                return 0; //return 0 if the diagonal element is not 1
             } else if (i != j && matrix[i][j] != 0) {
-                return 0;
+                return 0; //return 0 if the non-diagonal element is not 0
             }
         }
     }
+    return 1; //return 1 if the matrix is an identity matrix
+} //close isIdentityMatrix function
 
-    return 1;
-}
-
+// Create an identity matrix of a given size
 static int** create_identity_matrix(int size) {
-    // Allocate memory for the rows
-    int** matrix = (int**)mymalloc(size * sizeof(int*));
-    if (matrix == NULL) {
-        return NULL;
+    int** matrix = (int**)mymalloc(size * sizeof(int*)); //allocate memory for the rows
+    if (matrix == NULL) { 
+        return NULL; //return NULL if memory allocation fails
     }
 
-    // For each row, allocate memory for the columns
-    for (int i = 0; i < size; i++) {
-        matrix[i] = (int*)mymalloc(size * sizeof(int));
-        if (matrix[i] == NULL) {
-            // If allocation fails, free any previously allocated memory
-            for (int j = 0; j < i; j++) {
-                myfree(matrix[j]);
+    for (int i = 0; i < size; i++) { //loop through the rows
+        matrix[i] = (int*)mymalloc(size * sizeof(int)); //allocate memory for the entries in the row
+        if (matrix[i] == NULL) { //check if memory allocation was successful
+            for (int j = 0; j < i; j++) { //loop through the rows and free previously allocated memory
+                myfree(matrix[j]); //free the memory for each row
             }
-            myfree(matrix);
-            return NULL;
+            myfree(matrix); //free the memory for the matrix
+            return NULL; //return NULL if problem
         }
 
-        // Initialize the elements to 0
         for (int j = 0; j < size; j++) {
-            matrix[i][j] = 0;
+            matrix[i][j] = 0; //initialize the elements to 0
         }
 
-        // Set the diagonal element to 1
-        matrix[i][i] = 1;
-    }
-
-    return matrix;
-}
+        matrix[i][i] = 1; //set the diagonal elements to 1
+    } //close for loop
+    return matrix; //return the identity matrix
+} //close create_identity_matrix function
 
 
+// Multiply two matrices
 static int** multiply_matrices(int** matrix1, int** matrix2, int size) {
-    // Allocate memory for the result matrix
-    int** result = (int**)mymalloc(size * sizeof(int*));
-    if (result == NULL) {
-        return NULL;
+    int** result = (int**)mymalloc(size * sizeof(int*)); //allocate memory for the result matrix
+    if (result == NULL) { //check if memory allocation was successful
+        return NULL; //return NULL if problem
     }
 
-    for (int i = 0; i < size; i++) {
-        result[i] = (int*)mymalloc(size * sizeof(int));
-        if (result[i] == NULL) {
-            // If allocation fails, free any previously allocated memory
-            for (int j = 0; j < i; j++) {
-                myfree(result[j]);
+    for (int i = 0; i < size; i++) { //loop through the rows
+        result[i] = (int*)mymalloc(size * sizeof(int)); //allocate memory for the entries in the row
+        if (result[i] == NULL) { //check if memory allocation was successful
+            for (int j = 0; j < i; j++) { //loop through the rows and free previously allocated memory
+                myfree(result[j]); //free the memory for each row
             }
-            myfree(result);
-            return NULL;
-        }
+            myfree(result); //free the memory for the matrix
+            return NULL; //return NULL if problem
+        } //close if statement
 
-        // Initialize the elements to 0
-        for (int j = 0; j < size; j++) {
-            result[i][j] = 0;
+        for (int j = 0; j < size; j++) { //loop through the entries in the row
+            result[i][j] = 0; //initialize the elements to 0
         }
-    }
+    } //close for loop
 
-    // Perform the multiplication
+    // for loop operations to multiply the matrices
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             for (int k = 0; k < size; k++) {
@@ -119,31 +116,33 @@ static int** multiply_matrices(int** matrix1, int** matrix2, int size) {
         }
     }
 
-    return result;
-}
+    return result; //return the result matrix
+} //close multiply_matrices function
 
+// Verify the success of the matrix multiplication
 void verifySuccess(MatrixProduct* matrixProduct) {
-    if (matrixProduct == NULL) {
-        matrixProduct->success = 0;
-        return;
+    if (matrixProduct == NULL) { //check if the matrix product structure is NULL
+        matrixProduct->success = 0; //set the success flag to 0
+        return; //return if the structure is NULL
     }
 
-    matrixProduct->success  =   isIdentityMatrix(matrixProduct->matrixA, matrixProduct->matrixSize) &&
-                                isIdentityMatrix(matrixProduct->matrixB, matrixProduct->matrixSize) &&
-                                isIdentityMatrix(matrixProduct->matrixProductAB, matrixProduct->matrixSize); 
-}
+    matrixProduct->success  =   isIdentityMatrix(matrixProduct->matrixA, matrixProduct->matrixSize) && //check if matrix A is an identity matrix
+                                isIdentityMatrix(matrixProduct->matrixB, matrixProduct->matrixSize) && //check if matrix B is an identity matrix
+                                isIdentityMatrix(matrixProduct->matrixProductAB, matrixProduct->matrixSize);  //check if the product matrix is an identity matrix
+} //close verifySuccess function
 
+// Destroy the matrix product structure
 void destroyMatrixProduct(MatrixProduct* matrixProduct) {
-    if (matrixProduct == NULL) {
-        return;
+    if (matrixProduct == NULL) { //check if the matrix product structure is NULL
+        return; //return if the structure is NULL
     }
-    for (int i = 0; i < matrixProduct->matrixSize; i++) {
-        myfree(matrixProduct->matrixA[i]);
-        myfree(matrixProduct->matrixB[i]);
-        myfree(matrixProduct->matrixProductAB[i]);
+    for (int i = 0; i < matrixProduct->matrixSize; i++) { //loop through the rows of the matrices
+        myfree(matrixProduct->matrixA[i]); //free the memory for each row of matrix A
+        myfree(matrixProduct->matrixB[i]); //free the memory for each row of matrix B
+        myfree(matrixProduct->matrixProductAB[i]); //free the memory for each row of the product matrix
     }
-    myfree(matrixProduct->matrixA);
-    myfree(matrixProduct->matrixB);
-    myfree(matrixProduct->matrixProductAB);
-    myfree(matrixProduct);
-}
+    myfree(matrixProduct->matrixA); //free the memory for matrix A
+    myfree(matrixProduct->matrixB); //free the memory for matrix B 
+    myfree(matrixProduct->matrixProductAB); //free the memory for the product matrix
+    myfree(matrixProduct); //free the memory for the structure
+} //close destroyMatrixProduct function
