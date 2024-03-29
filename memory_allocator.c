@@ -9,6 +9,9 @@ static size_t MEMORY_SIZE; //size of memory pool
 
 // initialize memory pool
 void initializeMemory(size_t size) {
+    if (size == 0) { //check if size is 0
+        return; //do nothing if size is 0
+    }
     if (memory == NULL) { //check if memory pool is already initialized
         MEMORY_SIZE = size; //set the size of the memory pool
         memory = mmap(NULL, MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);

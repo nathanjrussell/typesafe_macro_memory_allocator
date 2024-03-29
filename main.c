@@ -2,13 +2,28 @@
 #include "memory_allocator.h"
 #include <stdio.h>
 
+
+// Define MALLOC to use mymalloc or malloc based on the preprocessor flag -DMYMALLOC
+#ifdef DISABLE_MYMALLOC
+    #define MALLOC malloc
+    #define FREE free
+    #define MEMORY_POOL_SIZE 0
+#else
+    #define MALLOC mymalloc
+    #define FREE myfree
+    #define MEMORY_POOL_SIZE (4000*sizeof(int))*(4000*sizeof(int)) + 4000*3*sizeof(int*)
+
+#endif
+
 int main() {
-    initializeMemory((4000*sizeof(int))*(4000*sizeof(int)) + 4000*3*sizeof(int*));
-    int testCount = 1;
-    int modValue = 4000;
+    int seed = 123;
+    srand(seed);
+    initializeMemory(MEMORY_POOL_SIZE);
+    int testCount = 10;
+    int modValue = 1000;
     int offsetValue = 500;
-    int *randomSizes = (int*)mymalloc(testCount * sizeof(int));
-    MatrixProduct** matrixProducts = (MatrixProduct**)mymalloc(testCount * sizeof(MatrixProduct*));
+    int *randomSizes = (int*)MALLOC(testCount * sizeof(int));
+    MatrixProduct** matrixProducts = (MatrixProduct**)MALLOC(testCount * sizeof(MatrixProduct*));
     if (randomSizes == NULL) {
         return 1;
     }
@@ -16,7 +31,7 @@ int main() {
         randomSizes[i] = rand() % modValue + offsetValue;
     }
     for (int i=0; i<testCount; i++) {
-        int size = 4000;
+        int size = randomSizes[i];
         matrixProducts[i] = buildMatrixTest(size);
         verifySuccess(matrixProducts[i]);
         if (matrixProducts[i] != NULL && matrixProducts[i]->success) {
@@ -32,8 +47,8 @@ int main() {
     for (int i = testCount - 2; i < testCount; i++) {
         destroyMatrixProduct(matrixProducts[i]);
     }
-    myfree(randomSizes);
-    myfree(matrixProducts);
+    FREE(randomSizes);
+    FREE(matrixProducts);
     free_memory();
 
     return 0;
