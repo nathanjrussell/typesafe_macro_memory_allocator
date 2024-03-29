@@ -7,7 +7,7 @@
 
 typedef struct {
     size_t size;
-    int free;
+    char free;
 } Block;
 
 static char *memory = NULL;
