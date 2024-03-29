@@ -13,7 +13,7 @@ typedef struct {
 static char *memory = NULL;
 static size_t allocated = 0;
 
-void init_memory() {
+void initializeMemory() {
     if (memory == NULL) {
         // Reserve a large block of memory
         memory = mmap(NULL, MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -36,7 +36,7 @@ void free_memory() {
 }
 
 void* mymalloc(size_t size) {
-    init_memory();
+    initializeMemory();
 
     // Search for a free block that can fit the requested size
     Block *block = (Block *)memory;
@@ -82,21 +82,3 @@ void myfree(void* ptr) {
     block->free = 1;
 }
 
-int main() {
-    // Allocate memory for an integer
-    void *ptr = mymalloc(sizeof(int));
-    if (ptr == NULL) {
-        return 1;
-    }
-
-    // Use the allocated memory
-    *(int*)ptr = 10;
-    printf("Value of *ptr: %d\n", *(int*)ptr);
-
-    // Free the memory
-    myfree(ptr);
-
-    free_memory();
-
-    return 0;
-}
